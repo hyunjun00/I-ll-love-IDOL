@@ -1,4 +1,4 @@
-import { collection, getDocs, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { db } from "../firebase";
@@ -18,6 +18,7 @@ const Wrapper=styled.div`
     display:flex;
     gap:10px;
     flex-direction:column;
+    overflow-y:scroll;
 `;
 
 export default function Timeline() {
@@ -39,6 +40,7 @@ export default function Timeline() {
                     tweet,createdAt,userId,username,photo,id:doc.id,
                 };
             });*/
+            //사진 여러 장 등록에 map 함수 써보기
             unsubscribe=await onSnapshot(tweetsQuery,(snapshot)=>{
                 const tweets=snapshot.docs.map((doc)=> {
                     const {tweet,createdAt,userId,username,photo}=doc.data();
