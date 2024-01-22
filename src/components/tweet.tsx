@@ -3,6 +3,8 @@ import { ITweet } from "./timeline";
 import { auth, db, storage } from "../firebase";
 import { deleteDoc, doc } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
+import { useState } from "react";
+import EditTweets from "./edit-tweet";
 
 const Wrapper=styled.div`
     display:grid;
@@ -42,7 +44,7 @@ const DeleteButton=styled.button`
     cursor: pointer;
 `;
 
-const UpdateButton=styled.button`
+const EditButton=styled.button`
     background-color:tomato;
     color:white;
     font-weight:600;
@@ -54,7 +56,10 @@ const UpdateButton=styled.button`
     cursor: pointer;
 `;
 
-export default function Tweet({username,photo,tweet,userId,id}:ITweet) {
+export default function Tweet(tweetProps:ITweet) {
+    const [edit,setEdit]=useState(false);
+    const {username,photo,tweet,userId,id}=tweetProps;
+    //const modalBackground=useRef();
     const user=auth.currentUser;
     const onDelete=async()=>{
         const ok=confirm("Are you sure you want to delete this tweet?");
@@ -70,15 +75,37 @@ export default function Tweet({username,photo,tweet,userId,id}:ITweet) {
         } finally {
             //
         }
+    };
+    const onEdit=async()=> {
+        setEdit(true);
+    };
+    const onCloseEdit=async()=> {
+        setEdit(false);
+    };
+    /*
+    const exitModal=async(e:MouseEvent)=>{
+        if(e.target===modalBackground.current) {
+            setEdit(false);
+        }
     }
+    */
+
     return (
         <Wrapper>
             <Column>
                 <Username>{username}</Username>
                 <Payload>{tweet}</Payload>
-                {user?.uid===userId ?<DeleteButton onClick={onDelete}>Delete</DeleteButton> :null}
-                {user?.uid===userId ? <UpdateButton>Update</UpdateButton>:null}
+                {user?.uid===userId ? (
+                    <>
+                        <DeleteButton onClick={onDelete}>Delete</DeleteButton> 
+                        <EditButton onClick={onEdit}>Edit</EditButton>
+                    </>
+                ):null}
             </Column>
+            {edit ? (
+                /*<EditTweets ref={modalBackground}  onClick={exitModal} onClose={closeEdit} tweet={tweetProps} />*/
+                <EditTweets onClose={onCloseEdit} tweet={tweetProps} />
+            ):null}
             <Column>
                 {photo ? (
                     <Photo src={photo} />
