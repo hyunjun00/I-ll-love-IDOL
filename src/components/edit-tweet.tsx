@@ -91,11 +91,14 @@ const CancelButton=styled.input`
     cursor: pointer;
 `;
 
+const DeleteImg=styled.div``;
+
 export default function EditTweets({onClose,tweet}:EditTweetProps) {
     const user=auth.currentUser;
     const [isLoading,setLoading]=useState(false);
     const [newTweet,setNewTweet]=useState("");
     const [newFile,setNewFile]=useState<File|null>(null);
+    const [deleteFile,setDeleteFile]=useState(false);
     const avatar=user?.photoURL;
     const dialogRef=useRef<HTMLDialogElement>(null);
 
@@ -106,9 +109,12 @@ export default function EditTweets({onClose,tweet}:EditTweetProps) {
       const {files}=e.target;
       if(files&&files.length===1) {
         setNewFile(files[0]);
-        console.log(newFile);
       }
     };
+    const onDeleteFile=()=>{
+      setDeleteFile(true);
+      setNewFile(null);
+    }
     const onSubmit=async(e:React.FormEvent<HTMLFormElement>)=> {
       e.preventDefault();
       const user=auth.currentUser;
@@ -120,19 +126,20 @@ export default function EditTweets({onClose,tweet}:EditTweetProps) {
         await updateDoc(tweetRef,{
           tweet:newTweet,
         });
-        
-        if(newFile) {
-          console.log(newFile);
-          if(tweet.photo) {
-            const OriginRef=ref(storage,`tweets/${user.uid}/${tweet.id}`);
-            await deleteObject(OriginRef);
-          }
-          const locationRef=ref(storage,`tweets/${user.uid}/${tweet.id}`);
-          const result=await uploadBytes(locationRef,newFile);
-          const url=await getDownloadURL(result.ref);
+        if(deleteFile && tweet.photo) {
+          const OriginRef=ref(storage,`tweets/${user.uid}/${tweet.id}`);
+          await deleteObject(OriginRef);
           await updateDoc(tweetRef, {
-              photo:url
+            photo:null
           });
+        }
+        if(newFile) {
+        const locationRef=ref(storage,`tweets/${user.uid}/${tweet.id}`);
+        const result=await uploadBytes(locationRef,newFile);
+        const url=await getDownloadURL(result.ref);
+        await updateDoc(tweetRef, {
+            photo:url
+        });
       }
       } catch(e) {
         console.log(e);
@@ -150,6 +157,8 @@ export default function EditTweets({onClose,tweet}:EditTweetProps) {
       dialogRef.current?.showModal();
     }, []);
 
+    const previewImg=deleteFile ? null : newFile ? URL.createObjectURL(newFile) : tweet.photo;
+
     return (
       <Wrapper ref={dialogRef}>
         <Form onSubmit={onSubmit}>
@@ -158,8 +167,9 @@ export default function EditTweets({onClose,tweet}:EditTweetProps) {
           ) : (
             <AnonymousAvatarImg src="/anonymous-avatar.svg" />
           )}
-          <TextArea rows={5} maxLength={180} onChange={onEditTweet} value={newTweet}></TextArea>
-          <AttachFileButton htmlFor={`newFile${tweet.id}`}>{tweet.photo ? (<PhotoImg src={tweet.photo} />):(<PhotoImg src="/Photo-black.svg" />)}</AttachFileButton>
+          <TextArea required rows={5} maxLength={180} onChange={onEditTweet} value={newTweet}></TextArea>
+          {previewImg ? (<DeleteImg onClick={onDeleteFile}>❌</DeleteImg>):null}
+          <AttachFileButton htmlFor={`newFile${tweet.id}`}>{previewImg ? (<PhotoImg src={previewImg} />):(<PhotoImg src="/Photo-black.svg" />)}</AttachFileButton>
           <AttachFileInput onChange={onEditFile} type="file" id={`newFile${tweet.id}`} accept="image/*"/>
           <SubmitButton type="submit" value={isLoading ? "Posting..." : "Post Tweet"}/>
           {isLoading ? null : (<CancelButton type="button" onClick={onCancel} value="Cancel" />)}
