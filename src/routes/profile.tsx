@@ -52,10 +52,31 @@ const AnonymousAvatarImg=styled.img`
     width:100%;
 `;
 
+const ChangeNameButton=styled.label`
+    display:flex;
+    flex-direction:column;
+    svg {
+        width:20px;
+    }
+`;
+
+const ChangeNameTextArea=styled.textarea``;
+
+const ChangeNameInput=styled.input`
+    display:none;
+`;
+
+const ChangeOk=styled.div`
+`;
+
+const ChangeCancel=styled.div``;
+
 export default function Profile() {
     const user=auth.currentUser;
     const [avatar,setAvatar]=useState(user?.photoURL);
     const [tweets,setTweets]=useState<ITweet[]>([]);
+    const [changeOk,setChangeOk]=useState(false);
+    const [newName,setNewName]=useState(user?.displayName ?? "");
     const onAvatarChange=async(e:React.ChangeEvent<HTMLInputElement>) => {
         const {files} = e.target;
         if(!user) return;
@@ -89,6 +110,26 @@ export default function Profile() {
     useEffect(()=>{
         fetchTweets();
     },[]);
+
+    const onClickChangeName=()=>{
+        setChangeOk(true);
+    };
+    const onChangeName=(e:React.ChangeEvent<HTMLTextAreaElement>)=>{
+        setNewName(e.target.value);
+    };
+    const onChangeNameOk=async()=>{
+        if(!user) return;
+        await updateProfile(user,{
+            displayName:newName,
+        });
+        
+        setChangeOk(false);
+    };
+    
+    const onChangeNameCancel=()=>{
+        setChangeOk(false);
+        setNewName(newName);
+    };
     return (
         <Wrapper>
             <AvatarUpload htmlFor="avatar">
@@ -99,9 +140,29 @@ export default function Profile() {
         )}
             </AvatarUpload>
             <AvatarInput onChange={onAvatarChange} id="avatar" type="file" accept="image/*" />
+            {changeOk ? (
+                <>
+                    <ChangeNameTextArea required onChange={onChangeName} value={newName}/><ChangeOk onClick={onChangeNameOk}>✔</ChangeOk><ChangeCancel onClick={onChangeNameCancel}>❌</ChangeCancel>
+                </>
+            ): 
             <Name>
                 {user?.displayName ?? "Anonymous"}
-            </Name>
+            </Name>}
+            
+            {/* {user?.uid===userId ? (
+                <ChangeNameButton htmlFor="changeName">
+                    <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.419a4 4 0 0 0-.885 1.343Z" />
+                    </svg>  
+                </ChangeNameButton>
+            ) :null}; */}
+
+            <ChangeNameButton htmlFor="changeName">
+                <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.419a4 4 0 0 0-.885 1.343Z" />
+                </svg>  
+            </ChangeNameButton>
+            <ChangeNameInput id="changeName" onClick={onClickChangeName}/>
             <Tweets>
                 {tweets.map(tweet=><Tweet key={tweet.id} {...tweet} />)}
             </Tweets>
