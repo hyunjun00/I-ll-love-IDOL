@@ -1,4 +1,4 @@
-import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, getDocs, limit, onSnapshot, orderBy, query, startAfter } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { db } from "../firebase";
@@ -23,7 +23,42 @@ const Wrapper=styled.div`
 
 export default function Timeline() {
     const [tweets,setTweet]=useState<ITweet[]>([]);
+
+    const fetchTweetsAfter=async()=> {
+        const tweetsQuery=query(
+            collection(db,"tweets"),
+            orderBy("createdAt","desc"),
+            limit(5),
+            startAfter(tweets[tweets.length-1].createdAt)
+        );
+
+        const snapshot=await getDocs(tweetsQuery);
+        const tweetsCopy=Array.from(tweets);
+        snapshot.docs.map((doc)=> {
+            const {tweet,createdAt,userId,username,photo}=doc.data();
+            tweetsCopy.push({
+                tweet: tweet,
+                createdAt: createdAt,
+                userId: userId,
+                username: username,
+                photo: photo,
+                id:doc.id,
+            });
+            return {
+                tweet,createdAt,userId,username,photo,id:doc.id,
+            };
+        });
+        setTweet(tweetsCopy)
+    }
     
+    const handleScroll=(e:React.UIEvent)=>{
+        const target=e.target as HTMLElement;
+        const bottomPos=target.clientHeight+target.scrollTop;
+        if(target.scrollHeight<=bottomPos) {
+            fetchTweetsAfter();
+        }
+    }
+
     useEffect(()=> {
         let unsubscribe:Unsubscribe|null=null;
         const fetchTweets=async()=> {
@@ -55,9 +90,10 @@ export default function Timeline() {
         return() => {
             unsubscribe && unsubscribe();
         }
+        
     },[]);
     return (
-        <Wrapper>
+        <Wrapper onScroll={handleScroll}>
             {tweets.map(tweet => <Tweet key={tweet.id} {...tweet} />
             )}
         </Wrapper>
