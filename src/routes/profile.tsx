@@ -3,7 +3,7 @@ import { auth, db, storage } from "../firebase";
 import { useEffect, useState } from "react";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
-import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
+import { collection, getDocs, limit, orderBy, query, updateDoc, where, doc } from "firebase/firestore";
 import { ITweet } from "../components/timeline";
 import Tweet from "../components/tweet";
 
@@ -106,6 +106,7 @@ export default function Profile() {
             };
         });
         setTweets(tweets);
+        console.log("1");
     };
     useEffect(()=>{
         fetchTweets();
@@ -119,11 +120,25 @@ export default function Profile() {
     };
     const onChangeNameOk=async()=>{
         if(!user) return;
+        if(user.displayName==newName)  return;
         await updateProfile(user,{
             displayName:newName,
         });
         
-        setChangeOk(false);
+        try {
+            const querySnapshot=await getDocs(collection(db,"tweets"));
+            querySnapshot.forEach(tweet=>{
+                const docRef=doc(db,"tweets",tweet.id)
+                updateDoc(docRef, {
+                    username:newName
+                })
+            })
+        } catch(e) {
+            console.log(e);
+        }finally {
+            setChangeOk(false);
+        }
+        console.log("2");
     };
     
     const onChangeNameCancel=()=>{
