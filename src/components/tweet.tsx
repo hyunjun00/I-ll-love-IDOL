@@ -1,10 +1,11 @@
 import styled from "styled-components";
 import { ITweet } from "./timeline";
 import { auth, db, storage } from "../firebase";
-import { deleteDoc, doc } from "firebase/firestore";
-import { deleteObject, ref } from "firebase/storage";
-import { useState } from "react";
+import { deleteDoc, doc, getDoc } from "firebase/firestore";
+import { deleteObject, getDownloadURL, ref } from "firebase/storage";
+import { useEffect, useState } from "react";
 import EditTweets from "./edit-tweet";
+import { Link } from "react-router-dom";
 
 const Wrapper=styled.div`
     display:grid;
@@ -56,11 +57,27 @@ const EditButton=styled.button`
     cursor: pointer;
 `;
 
+const AnonymousAvatarImg=styled.img`
+    width: 80px;
+    height:80px;
+    border-radius:50%;
+`;
+
+const AvatarImg=styled.img`
+    width: 80px;
+    height:80px;
+    border-radius:50%;
+`;
+
+// const Btn=styled.button``;
+
 export default function Tweet(tweetProps:ITweet) {
     const [edit,setEdit]=useState(false);
     const {username,photo,tweet,userId,id}=tweetProps;
     //const modalBackground=useRef();
     const user=auth.currentUser;
+    const [avatar,setAvatar]=useState<string|null>(null);
+    
     const onDelete=async()=>{
         const ok=confirm("Are you sure you want to delete this tweet?");
         if(!ok || user?.uid!==userId) return;
@@ -82,6 +99,36 @@ export default function Tweet(tweetProps:ITweet) {
     const onCloseEdit=async()=> {
         setEdit(false);
     };
+
+    //Tweets 사용자 아바타
+    const fetchAvatarUrl=async(userId:string)=>{
+        try{
+            const userRef=doc(db,"tweets",userId);
+            const userDoc=await getDoc(userRef);
+            const userDataID=userDoc.id;
+            const avatarRef=ref(storage,`avatar/${userDataID}`);
+
+            return await getDownloadURL(avatarRef);
+        } catch(e) {
+            console.log(e);
+        }
+    };
+
+    useEffect(()=>{
+        const fetchTweetAvatar=async()=>{
+            if(userId) {
+                const avatarUrl = await fetchAvatarUrl(userId);
+				setAvatar(avatarUrl);
+            } else {
+                console.log("userId is undefined or null");
+            }
+        };
+
+        fetchTweetAvatar();
+    },[userId]);
+    // const click=()=>{
+    //     console.log(`${user?.uid} ${userId} ${user?.photoURL} ${`avatar/${user?.uid}`}`);
+    // };
     /*
     const exitModal=async(e:MouseEvent)=>{
         if(e.target===modalBackground.current) {
@@ -93,6 +140,25 @@ export default function Tweet(tweetProps:ITweet) {
     return (
         <Wrapper>
             <Column>
+                <>
+                    {user?.uid===userId ? (
+                        <Link to="/profile">
+                            {avatar ? (
+                                <AvatarImg src={avatar} />
+                            ) : (
+                                <AnonymousAvatarImg src="/anonymous-avatar.svg" />
+                            )}
+                        </Link>
+                    ):(
+                        <Link to="user-timeline">
+                            {avatar ? (
+                                <AvatarImg src={avatar} />
+                            ) : (
+                                <AnonymousAvatarImg src="/anonymous-avatar.svg" />
+                            )}
+                        </Link>
+                    )}
+                </>
                 <Username>{username}</Username>
                 <Payload>{tweet}</Payload>
                 {user?.uid===userId ? (

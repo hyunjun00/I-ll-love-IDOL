@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ITweet } from "./timeline";
 import styled from "styled-components";
 import { auth, db, storage } from "../firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 export interface EditTweetProps {
@@ -125,12 +125,14 @@ export default function EditTweets({onClose,tweet}:EditTweetProps) {
         const tweetRef=doc(db,"tweets",tweet.id);
         await updateDoc(tweetRef,{
           tweet:newTweet,
+          updateDoc:Date.now(),
         });
         if(deleteFile && tweet.photo) {
           const OriginRef=ref(storage,`tweets/${user.uid}/${tweet.id}`);
           await deleteObject(OriginRef);
           await updateDoc(tweetRef, {
-            photo:null
+            photo:null,
+            updateDoc:Date.now(),
           });
         }
         if(newFile) {
@@ -138,8 +140,16 @@ export default function EditTweets({onClose,tweet}:EditTweetProps) {
         const result=await uploadBytes(locationRef,newFile);
         const url=await getDownloadURL(result.ref);
         await updateDoc(tweetRef, {
-            photo:url
+            photo:url,
+            updateDoc:Date.now(),
         });
+
+        //업데이트 된 내용 서버에서 가져오기
+        const updatedTweetSnapshot=await getDoc(tweetRef);
+        const updatedTweetData=updatedTweetSnapshot.data();
+
+        //업데이트된 트윗 내용을 상태에 업뎃
+        setNewTweet(updatedTweetData?.tweet);
       }
       } catch(e) {
         console.log(e);

@@ -11,6 +11,7 @@ import LoadingScreen from "./components/loading-screen";
 import { auth } from "./firebase";
 import ProtectedRoute from "./components/protected-route";
 import ResetPassword from "./routes/forgot-password";
+import UserTimeline from "./routes/user-timeline";
 
 const router=createBrowserRouter([
   {
@@ -42,6 +43,10 @@ const router=createBrowserRouter([
   {
     path:"/forgot-password",
     element:<ResetPassword />
+  },
+  {
+    path:"user-timeline",
+    element:<UserTimeline />
   },
 ]);
 
