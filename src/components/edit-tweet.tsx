@@ -16,21 +16,22 @@ const Wrapper=styled.dialog`
   &::backdrop {
     background-color:rgba(0,0,0,0.7);
   }
+  display:flex;
+    flex-direction:column;
 `;
 
 const Form=styled.form`
   font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  display:grid;
-  grid-template-columns:3fr 1fr;
+  
   padding:20px;
   border: 1px solid rgba(255,255,255,0.5);
   border-radius:15px;
 `;
 
 const AvatarImg=styled.img`
-  width:80px;
+  width:50px;
   overflow:hidden;
-  height:80px;
+  height:50px;
   border-radius:50%;
   background-color:#1d9bf0;
   display:flex;
@@ -41,9 +42,9 @@ const AvatarImg=styled.img`
 `;
 
 const AnonymousAvatarImg=styled.img`
-  width:80px;
+  width:50px;
   overflow:hidden;
-  height:80px;
+  height:50px;
   border-radius:50%;
   background-color:#1d9bf0;
   display:flex;
@@ -53,7 +54,16 @@ const AnonymousAvatarImg=styled.img`
   }
 `;
 
-const TextArea=styled.textarea``;
+const TextArea=styled.textarea`
+  margin:10px;
+  border:2px solid;
+  padding:20px;
+  border-radius:20px;
+  font-size:16px;
+  width:100%;
+  resize:none;
+  font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+`;
 
 const AttachFileButton=styled.label``;
 
@@ -91,7 +101,25 @@ const CancelButton=styled.input`
     cursor: pointer;
 `;
 
+const UserInfo=styled.div`
+    display:flex;
+    flex-direction:flex-start;
+    align-items:center;
+`;
+
+const Username=styled.span`
+    font-weight:600;
+    font-size:15px;
+    margin-left:10px;
+`;
+
 const DeleteImg=styled.div``;
+
+const InputDiv=styled.div`
+  display:flex;
+  flex-direction:flex-start;
+  align-items:center;
+`;
 
 export default function EditTweets({onClose,tweet}:EditTweetProps) {
     const user=auth.currentUser;
@@ -172,15 +200,20 @@ export default function EditTweets({onClose,tweet}:EditTweetProps) {
     return (
       <Wrapper ref={dialogRef}>
         <Form onSubmit={onSubmit}>
-          {avatar ? (
-            <AvatarImg src={avatar} />
-          ) : (
-            <AnonymousAvatarImg src="/anonymous-avatar.svg" />
-          )}
-          <TextArea required rows={5} maxLength={180} onChange={onEditTweet} value={newTweet}></TextArea>
-          {previewImg ? (<DeleteImg onClick={onDeleteFile}>❌</DeleteImg>):null}
-          <AttachFileButton htmlFor={`newFile${tweet.id}`}>{previewImg ? (<PhotoImg src={previewImg} />):(<PhotoImg src="/Photo-black.svg" />)}</AttachFileButton>
-          <AttachFileInput onChange={onEditFile} type="file" id={`newFile${tweet.id}`} accept="image/*"/>
+          <UserInfo>
+            {avatar ? (
+              <AvatarImg src={avatar} />
+            ) : (
+              <AnonymousAvatarImg src="/anonymous-avatar.svg" />
+            )}
+              <Username>{tweet.username}</Username>
+          </UserInfo>
+          <InputDiv>
+            <TextArea required rows={5} maxLength={180} onChange={onEditTweet} value={newTweet}></TextArea>
+            {previewImg ? (<DeleteImg onClick={onDeleteFile}>❌</DeleteImg>):null}
+            <AttachFileButton htmlFor={`newFile${tweet.id}`}>{previewImg ? (<PhotoImg src={previewImg} />):(<PhotoImg src="/Photo-black.svg" />)}</AttachFileButton>
+            <AttachFileInput onChange={onEditFile} type="file" id={`newFile${tweet.id}`} accept="image/*"/>
+          </InputDiv>
           <SubmitButton type="submit" value={isLoading ? "Posting..." : "Post Tweet"}/>
           {isLoading ? null : (<CancelButton type="button" onClick={onCancel} value="Cancel" />)}
         </Form>

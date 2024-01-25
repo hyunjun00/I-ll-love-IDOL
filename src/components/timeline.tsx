@@ -23,32 +23,42 @@ const Wrapper=styled.div`
 
 export default function Timeline() {
     const [tweets,setTweet]=useState<ITweet[]>([]);
+    const [isLoading,setLoading]=useState(false);
 
     const fetchTweetsAfter=async()=> {
-        const tweetsQuery=query(
-            collection(db,"tweets"),
-            orderBy("createdAt","desc"),
-            limit(5),
-            startAfter(tweets[tweets.length-1].createdAt)
-        );
+        if(isLoading) return;
 
-        const snapshot=await getDocs(tweetsQuery);
-        const tweetsCopy=Array.from(tweets);
-        snapshot.docs.map((doc)=> {
-            const {tweet,createdAt,userId,username,photo}=doc.data();
-            tweetsCopy.push({
-                tweet: tweet,
-                createdAt: createdAt,
-                userId: userId,
-                username: username,
-                photo: photo,
-                id:doc.id,
+        try {
+            setLoading(true);
+            const tweetsQuery=query(
+                collection(db,"tweets"),
+                orderBy("createdAt","desc"),
+                limit(5),
+                startAfter(tweets[tweets.length-1].createdAt)
+            );
+
+            const snapshot=await getDocs(tweetsQuery);
+            const tweetsCopy=Array.from(tweets);
+            snapshot.docs.map((doc)=> {
+                const {tweet,createdAt,userId,username,photo}=doc.data();
+                tweetsCopy.push({
+                    tweet: tweet,
+                    createdAt: createdAt,
+                    userId: userId,
+                    username: username,
+                    photo: photo,
+                    id:doc.id,
+                });
+             return {
+                    tweet,createdAt,userId,username,photo,id:doc.id,
+                };
             });
-            return {
-                tweet,createdAt,userId,username,photo,id:doc.id,
-            };
-        });
-        setTweet(tweetsCopy)
+         setTweet(tweetsCopy)
+        } catch(e) {
+            console.log(e);
+        } finally {
+            setLoading(false);
+        }
     }
     
     const handleScroll=(e:React.UIEvent)=>{
@@ -94,8 +104,7 @@ export default function Timeline() {
     },[]);
     return (
         <Wrapper onScroll={handleScroll}>
-            {tweets.map(tweet => <Tweet key={tweet.id} {...tweet} />
-            )}
+            {tweets.map(tweet => <Tweet key={tweet.id} {...tweet} />)}
         </Wrapper>
     );
 }

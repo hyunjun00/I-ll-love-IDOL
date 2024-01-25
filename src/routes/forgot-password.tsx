@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebase";
-import { Error, Form, Input, Swither, Title, Wrapper } from "../components/auth-components";
+import { Error, Form, Input, Main, SignImg, Swither, Title, Wrapper } from "../components/auth-components";
 
 export default function ResetPassword() {
     const navigate=useNavigate();
@@ -35,19 +35,22 @@ export default function ResetPassword() {
         }
     }
     return (
-        <Wrapper>
-            <Title>Find Password 🎤</Title>
-            <Form onSubmit={onSubmit}>
-                <Input onChange={onChange} name="email" value={email} placeholder="Email" type="email" required/>
-                <Input type="submit" value={isLoading ? "Loading..." : "Enter your email"}/>
-            </Form>
-            {error !== "" ? <Error>{error}</Error> : null}
-            <Swither>
-                Don't have an account? <Link to="/create-account">Create one &rarr;</Link>
-            </Swither>
-            <Swither>
-                Already have an account? <Link to="/login">Log in&rarr;</Link>
-            </Swither>
-        </Wrapper>
+        <Main>
+            <Wrapper>
+                <Title>Find Password 🎤</Title>
+                <Form onSubmit={onSubmit}>
+                    <Input onChange={onChange} name="email" value={email} placeholder="Email" type="email" required/>
+                    <Input type="submit" value={isLoading ? "Loading..." : "Enter your email"}/>
+                </Form>
+                {error !== "" ? <Error>{error}</Error> : null}
+                <Swither>
+                    Don't have an account? <Link to="/create-account">Create one &rarr;</Link>
+                </Swither>
+                <Swither>
+                    Already have an account? <Link to="/login">Log in&rarr;</Link>
+                </Swither>
+            </Wrapper>
+            <SignImg src="idol.svg"/>
+        </Main>
     );
 }

@@ -5,7 +5,7 @@ import { deleteDoc, doc, getDoc } from "firebase/firestore";
 import { deleteObject, getDownloadURL, ref } from "firebase/storage";
 import { useEffect, useState } from "react";
 import EditTweets from "./edit-tweet";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 
 const Wrapper=styled.div`
     display:grid;
@@ -15,17 +15,22 @@ const Wrapper=styled.div`
     border-radius:15px;
 `;
 
-const Column=styled.div``;
+const Column=styled.div`
+    display:flex;
+    flex-direction:column;
+`;
 
 const Photo=styled.img`
-    width:100px;
-    height:100px;
+    width:300px;
+    height:300px;
     border-radius:15px;
+    margin-top:10px;
 `;
 
 const Username=styled.span`
     font-weight:600;
     font-size:15px;
+    margin-left:10px;
 `;
 
 const Payload=styled.p`
@@ -55,21 +60,28 @@ const EditButton=styled.button`
     text-transform:uppercase;
     border-radius:5px;
     cursor: pointer;
+    margin-top:10px;
 `;
 
 const AnonymousAvatarImg=styled.img`
-    width: 80px;
-    height:80px;
+    width: 50px;
+    height:50px;
     border-radius:50%;
 `;
 
 const AvatarImg=styled.img`
-    width: 80px;
-    height:80px;
+    width: 50px;
+    height:50px;
     border-radius:50%;
 `;
 
-// const Btn=styled.button``;
+const UserInfo=styled.div`
+    display:flex;
+    flex-direction:flex-start;
+    align-items:center;
+`;
+
+//  const Btn=styled.button``;
 
 export default function Tweet(tweetProps:ITweet) {
     const [edit,setEdit]=useState(false);
@@ -126,8 +138,9 @@ export default function Tweet(tweetProps:ITweet) {
 
         fetchTweetAvatar();
     },[userId]);
+    
     // const click=()=>{
-    //     console.log(`${user?.uid} ${userId} ${user?.photoURL} ${`avatar/${user?.uid}`}`);
+    //     console.log(`${user?.uid} ${userId} `);
     // };
     /*
     const exitModal=async(e:MouseEvent)=>{
@@ -140,17 +153,24 @@ export default function Tweet(tweetProps:ITweet) {
     return (
         <Wrapper>
             <Column>
-                <>
+                {/* <>
                     {user?.uid===userId ? (
-                        <Link to="/profile">
+                        <Link to={`/profile/${userId}`}>
                             {avatar ? (
-                                <AvatarImg src={avatar} />
+                                <AvatarImg src={avatar}/>
                             ) : (
                                 <AnonymousAvatarImg src="/anonymous-avatar.svg" />
                             )}
                         </Link>
                     ):(
-                        <Link to="user-timeline">
+                        <Link to="/user-timeline" tweet={tweetProps}> 
+                        <Link to={{
+                            pathname:"/user-timeline",
+                            state:{userId},
+                             }}
+                        >
+                        <Link to={`/user-timeline/${userId}`}>
+                        <Link to="/user-timeline" state={{userId:`${userId}`}} onClick={click}>
                             {avatar ? (
                                 <AvatarImg src={avatar} />
                             ) : (
@@ -158,10 +178,22 @@ export default function Tweet(tweetProps:ITweet) {
                             )}
                         </Link>
                     )}
-                </>
-                <Username>{username}</Username>
+                </> */}
+                <UserInfo>
+                    {avatar ? (
+                        <AvatarImg src={avatar} />
+                    ) : (
+                        <AnonymousAvatarImg src="/anonymous-avatar.svg" />
+                    )}
+                    <Username>{username}</Username>
+                </UserInfo>
+                {photo ? (
+                    <Photo src={photo} />
+                ):null}
                 <Payload>{tweet}</Payload>
-                {user?.uid===userId ? (
+            </Column>
+            <Column>
+            {user?.uid===userId ? (
                     <>
                         <DeleteButton onClick={onDelete}>Delete</DeleteButton> 
                         <EditButton onClick={onEdit}>Edit</EditButton>
@@ -172,11 +204,6 @@ export default function Tweet(tweetProps:ITweet) {
                 /*<EditTweets ref={modalBackground}  onClick={exitModal} onClose={closeEdit} tweet={tweetProps} />*/
                 <EditTweets onClose={onCloseEdit} tweet={tweetProps} />
             ):null}
-            <Column>
-                {photo ? (
-                    <Photo src={photo} />
-                ):null}
-            </Column>
         </Wrapper>
     );
 }
